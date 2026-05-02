@@ -7,7 +7,7 @@
   },
   "newProjectRoot": "projects",
   "projects": {
-    "BYM-front": {
+    "BeeryYummyMap": {
       "projectType": "application",
       "schematics": {
         "@schematics/angular:component": {
