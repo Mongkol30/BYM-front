@@ -41,7 +41,6 @@
             "security": {
               "allowedHosts": []
             }
-
           },
           "configurations": {
             "production": {
@@ -74,17 +73,17 @@
           "defaultConfiguration": "production"
         },
         "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
-            "production": {
-              "buildTarget": "BYM-front:build:production"
-            },
-            "development": {
-              "buildTarget": "BYM-front:build:development"
-            }
-          },
-          "defaultConfiguration": "development"
-        },
+  "builder": "@angular/build:dev-server",
+  "configurations": {
+    "production": {
+      "buildTarget": "BeeryYummyMap:build:production"
+    },
+    "development": {
+      "buildTarget": "BeeryYummyMap:build:development"
+    }
+  },
+  "defaultConfiguration": "development"
+},
         "test": {
           "builder": "@angular/build:unit-test"
         }
