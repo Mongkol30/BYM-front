@@ -1,0 +1,57 @@
+<div class="map-wrapper">
+
+  <!-- Search Bar -->
+  <div class="search-overlay">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>ค้นหาสถานที่</mat-label>
+
+      <input
+        matInput
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="searchPlace()"
+        placeholder="เช่น สยามพารากอน, เชียงใหม่"
+      />
+
+      <button
+        mat-icon-button
+        matSuffix
+        (click)="searchPlace()"
+        type="button"
+      >
+        <mat-icon>search</mat-icon>
+      </button>
+    </mat-form-field>
+
+    @if (searchError) {
+      <p class="search-error">
+        {{ searchError }}
+      </p>
+    }
+  </div>
+
+  <!-- Loading -->
+  @if (isLoading) {
+    <div class="loading-overlay">
+      <mat-spinner diameter="48"></mat-spinner>
+    </div>
+  }
+
+  <!-- Map -->
+  <div
+    #mapContainer
+    class="map-container">
+  </div>
+
+  <!-- My Location Button -->
+  <button
+    mat-fab
+    color="primary"
+    class="location-btn"
+    (click)="getCurrentLocation()"
+    matTooltip="ตำแหน่งของฉัน"
+    type="button"
+  >
+    <mat-icon>my_location</mat-icon>
+  </button>
+
+</div>
