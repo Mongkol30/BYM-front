@@ -49,11 +49,11 @@ export class MapComponent
   isLoading = true;
   searchError = '';
 
-  myIcon: any = '' ;
+  myIcon: any = '';
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object
-  ) {}
+  ) { }
 
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -62,7 +62,7 @@ export class MapComponent
     this.fixLeafletIcons();
     this.initMap();
     this.myIcon = this.L.divIcon({
-          html: `
+      html: `
             <div style="
               background:#1976d2;
               width:16px;
@@ -72,10 +72,10 @@ export class MapComponent
               box-shadow:0 2px 6px rgba(0,0,0,0.4)">
             </div>
           `,
-          className: '',
-          iconSize: [16, 16],
-          iconAnchor: [8, 8]
-        });
+      className: '',
+      iconSize: [16, 16],
+      iconAnchor: [8, 8]
+    });
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -90,20 +90,21 @@ export class MapComponent
   }
 
   private fixLeafletIcons(): void {
-    delete (this.L.Icon.Default.prototype as any)._getIconUrl;
+    const L = this.L.default ?? this.L;  // รองรับทั้ง 2 กรณี
 
-    this.L.Icon.Default.mergeOptions({
-      iconRetinaUrl:
-        'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
-      iconUrl:
-        'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
-      shadowUrl:
-        'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+    delete (L.Icon.Default.prototype as any)._getIconUrl;
+
+    L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
       iconSize: [25, 41],
       iconAnchor: [12, 41],
       popupAnchor: [1, -34],
       shadowSize: [41, 41]
     });
+
+    this.L = L;  // ← เขียนทับด้วย L ที่ถูกต้อง
   }
 
   private initMap(): void {
@@ -142,11 +143,11 @@ export class MapComponent
         Number(item.latitude),
         Number(item.longitude)
       ],
-    {
-      title: item.restaurantName,
-    riseOnHover: true,
-    draggable: false
-    })
+        {
+          title: item.restaurantName,
+          riseOnHover: true,
+          draggable: false
+        })
         .addTo(this.map)
         .bindPopup(`
           <b>${item.restaurantName}</b>
@@ -166,7 +167,7 @@ export class MapComponent
           this.map.removeLayer(this.currentMarker);
         }
 
-        
+
 
         this.currentMarker = this.L.marker(
           [latitude, longitude],
