@@ -6,5 +6,6 @@ export const routes: Routes = [
   { path: '', redirectTo: 'home', pathMatch: 'full' }, 
   { path: 'home', component: HomeComponent },
   { path: 'add-restaurant', component: AddrestaurantsComponent },
+  { path: 'edit-restaurant/:id', component: AddrestaurantsComponent },
   { path: '**', redirectTo: 'home' }
 ];

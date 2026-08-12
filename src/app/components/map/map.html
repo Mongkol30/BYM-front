@@ -1,21 +1,21 @@
 <div class="map-wrapper">
 
-  <!-- Search Bar -->
+  <!-- Search Bar Overlay -->
   <div class="search-overlay">
     <mat-form-field appearance="outline" class="search-field">
-      <mat-label>ค้นหาสถานที่</mat-label>
+      <mat-label>ค้นหาร้านอาหาร หรือ สถานที่</mat-label>
 
       <input
         matInput
         [(ngModel)]="searchQuery"
-        (keyup.enter)="searchPlace()"
-        placeholder="เช่น สยามพารากอน, เชียงใหม่"
+        (keyup.enter)="onSearch()"
+        placeholder="เช่น ส้มตำ, ชาบู, สยาม"
       />
 
       <button
         mat-icon-button
         matSuffix
-        (click)="searchPlace()"
+        (click)="onSearch()"
         type="button"
       >
         <mat-icon>search</mat-icon>
@@ -29,20 +29,20 @@
     }
   </div>
 
-  <!-- Loading -->
+  <!-- Loading Overlay -->
   @if (isLoading) {
     <div class="loading-overlay">
       <mat-spinner diameter="48"></mat-spinner>
     </div>
   }
 
-  <!-- Map -->
+  <!-- Map Element -->
   <div
     #mapContainer
     class="map-container">
   </div>
 
-  <!-- My Location Button -->
+  <!-- My Location Button (Tracker) -->
   <button
     mat-fab
     color="primary"

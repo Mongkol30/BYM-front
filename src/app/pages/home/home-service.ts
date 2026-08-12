@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '../../environments/environment';
 import { HomePinLocationsDto } from './dto/HomePinLocationsDto';
@@ -12,12 +12,16 @@ export class HomeService {
     private http: HttpClient,
   ) { }
 
-  private baseUrl = environment.apiUrl+"/home"
+  private baseUrl = environment.apiUrl + "/home";
 
-  getRestaurantMaps(): Observable<HomePinLocationsDto[]> {
+  getRestaurantMaps(search?: string): Observable<HomePinLocationsDto[]> {
+    let params = new HttpParams();
+    if (search && search.trim()) {
+      params = params.set('search', search.trim());
+    }
     return this.http.get<HomePinLocationsDto[]>(
-      `${this.baseUrl}/pins`
+      `${this.baseUrl}/pins`,
+      { params }
     );
   } 
-
 }

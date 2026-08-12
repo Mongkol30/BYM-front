@@ -1,9 +1,221 @@
-<div class="home-container">
-  <button mat-raised-button color="primary" class="top-right-btn" type="button" routerLink="/add-restaurant" >
-    <mat-icon>add</mat-icon>
-    เพิ่มร้านเลยจ้า
-  </button>
+<div class="home-layout">
+  
+  <!-- Floating Top Header Actions -->
+  <div class="top-actions">
+    <button mat-raised-button class="random-btn" (click)="openRandomizer()" type="button">
+      <mat-icon class="dice-icon">casino</mat-icon>
+      วันนี้กินอะไรดี?
+    </button>
 
-  <app-map [pinLocations]="pinLocations">
-  </app-map>
+    <a mat-raised-button color="accent" class="add-btn" routerLink="/add-restaurant">
+      <mat-icon>add_location_alt</mat-icon>
+      <span class="btn-text">เพิ่มร้านใหม่</span>
+    </a>
+  </div>
+
+  <!-- Map Component -->
+  <app-map
+    [pinLocations]="pinLocations"
+    (selectRestaurant)="onRestaurantSelected($event)"
+    (searchChange)="onSearchChange($event)"
+  ></app-map>
+
+  <!-- Restaurant Detail Sidebar / Mobile Bottom Sheet -->
+  @if (selectedRestaurant || isLoadingDetail) {
+    <div class="detail-sidebar">
+      
+      <!-- Mobile Drag Handle -->
+      <div class="mobile-drag-handle">
+        <span class="handle-bar"></span>
+      </div>
+
+      <div class="sidebar-header">
+        <h2>รายละเอียดร้านอาหาร</h2>
+        <button mat-icon-button (click)="closeSidebar()" type="button">
+          <mat-icon>close</mat-icon>
+        </button>
+      </div>
+
+      @if (isLoadingDetail) {
+        <div class="sidebar-loading">
+          <mat-spinner diameter="40"></mat-spinner>
+          <p>กำลังโหลดข้อมูลร้านอาหาร...</p>
+        </div>
+      }
+
+      @if (selectedRestaurant && !isLoadingDetail) {
+        <!-- Cover Image Banner -->
+        @if (selectedRestaurant.imageUrl) {
+          <div class="cover-banner">
+            <img [src]="selectedRestaurant.imageUrl" alt="Restaurant Cover" (error)="selectedRestaurant.imageUrl = ''" />
+            <div class="cover-overlay"></div>
+          </div>
+        }
+
+        <div class="sidebar-content">
+
+          <div class="res-title-box">
+            <h3 class="res-name">{{ selectedRestaurant.name }}</h3>
+            <span class="status-badge" [class.active]="selectedRestaurant.status === 'ACTIVE'">
+              {{ selectedRestaurant.status }}
+            </span>
+          </div>
+
+          <p class="res-code">รหัสร้าน: {{ selectedRestaurant.resCode }}</p>
+
+          <div class="res-description">
+            <p>{{ selectedRestaurant.description || 'ไม่มีรายละเอียดเพิ่มเติม' }}</p>
+          </div>
+
+          <div class="location-info">
+            <mat-icon color="primary">location_on</mat-icon>
+            <span>พิกัด: {{ selectedRestaurant.latitude }}, {{ selectedRestaurant.longitude }}</span>
+          </div>
+
+          <mat-divider class="divider"></mat-divider>
+
+          <!-- Menus Section -->
+          <div class="menus-section">
+            <h4>🍽️ รายการเมนูเด็ด ({{ selectedRestaurant.menus ? selectedRestaurant.menus.length : 0 }})</h4>
+
+            @if (selectedRestaurant.menus && selectedRestaurant.menus.length > 0) {
+              <div class="menu-list">
+                @for (menu of selectedRestaurant.menus; track menu.name) {
+                  <div class="menu-item">
+                    @if (menu.imageUrl) {
+                      <img [src]="menu.imageUrl" class="menu-thumb" alt="Menu Image" (error)="menu.imageUrl = ''" />
+                    }
+                    <div class="menu-info">
+                      <div class="menu-header">
+                        <span class="menu-name">{{ menu.name }}</span>
+                        <span class="menu-price">฿{{ menu.price }}</span>
+                      </div>
+                      @if (menu.description) {
+                        <p class="menu-desc">{{ menu.description }}</p>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="no-menus">ยังไม่มีรายการเมนูอาหาร</p>
+            }
+          </div>
+
+          <mat-divider class="divider"></mat-divider>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons">
+            <a
+              mat-raised-button
+              color="primary"
+              class="edit-btn"
+              [routerLink]="['/edit-restaurant', selectedRestaurant.id]"
+            >
+              <mat-icon>edit</mat-icon>
+              แก้ไขร้าน / เพิ่มเมนู
+            </a>
+
+            <button
+              mat-stroked-button
+              color="warn"
+              (click)="promptDelete(selectedRestaurant.id)"
+              type="button"
+            >
+              <mat-icon>delete</mat-icon>
+              ลบร้านนี้
+            </button>
+          </div>
+
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Randomizer "วันนี้กินอะไรดี?" Modal -->
+  @if (showRandomizerModal) {
+    <div class="modal-backdrop" (click)="closeRandomizer()">
+      <div class="randomizer-modal-box" (click)="$event.stopPropagation()">
+        
+        <div class="random-header">
+          <span class="dice-badge">🎲</span>
+          <h2>วันนี้กินอะไรดี?</h2>
+          <p>ระบบกำลังทำการสุ่มร้านอร่อยบนแผนที่ให้คุณ...</p>
+        </div>
+
+        <div class="slot-container" [class.spinning]="isSpinning">
+          @if (isSpinning) {
+            <div class="shuffle-text">
+              {{ shuffleName }}
+            </div>
+          } @else if (randomWinner) {
+            <div class="winner-card">
+              <span class="trophy-icon">🎉</span>
+              <h3 class="winner-name">{{ randomWinner.restaurantName }}</h3>
+              @if (randomWinner.imageUrl) {
+                <img [src]="randomWinner.imageUrl" class="winner-img" alt="Winner Cover" />
+              }
+            </div>
+          }
+        </div>
+
+        <div class="random-actions">
+          @if (isSpinning) {
+            <button mat-raised-button class="spinning-btn" disabled type="button">
+              <mat-spinner diameter="18"></mat-spinner>
+              <span>กำลังหมุนสุ่ม...</span>
+            </button>
+          } @else if (randomWinner) {
+            <button mat-stroked-button (click)="spin()" type="button">
+              <mat-icon>refresh</mat-icon>
+              สุ่มใหม่อีกครั้ง
+            </button>
+
+            <button mat-raised-button color="primary" (click)="applyWinner()" type="button">
+              <mat-icon>near_me</mat-icon>
+              ไปที่ร้านนี้เลย!
+            </button>
+          }
+        </div>
+
+      </div>
+    </div>
+  }
+
+  <!-- Modern Delete Confirmation Modal -->
+  @if (showDeleteModal) {
+    <div class="modal-backdrop" (click)="cancelDelete()">
+      <div class="confirm-modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-icon-badge warning">
+          <mat-icon>warning_amber</mat-icon>
+        </div>
+        <h3 class="modal-title">ยืนยันการลบร้านอาหาร?</h3>
+        <p class="modal-text">
+          ข้อมูลร้านค้านี้จะถูกยกเลิกการแสดงผลบนแผนที่ คุณแน่ใจหรือไม่ว่าต้องการดำเนินการต่อ?
+        </p>
+
+        <div class="modal-actions">
+          <button mat-button (click)="cancelDelete()" type="button" [disabled]="isDeleting">
+            ยกเลิก
+          </button>
+
+          <button
+            mat-raised-button
+            color="warn"
+            (click)="confirmDelete()"
+            type="button"
+            [disabled]="isDeleting"
+          >
+            @if (isDeleting) {
+              <mat-spinner diameter="18"></mat-spinner>
+            } @else {
+              <mat-icon>delete_forever</mat-icon>
+            }
+            ยืนยันการลบ
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
 </div>

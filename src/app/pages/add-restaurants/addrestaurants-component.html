@@ -1,7 +1,249 @@
-<button
-  mat-icon-button
-  type="button"
-  routerLink="/home"
->
-  <mat-icon>arrow_back</mat-icon>
-</button>
+<div class="add-page-wrapper">
+  <!-- Back Header Navigation -->
+  <div class="page-header">
+    <button mat-icon-button routerLink="/home" type="button">
+      <mat-icon>arrow_back</mat-icon>
+    </button>
+    <h1>{{ isEditMode ? 'แก้ไขข้อมูลร้านอาหาร & เพิ่มเมนู' : 'เพิ่มร้านอาหารใหม่' }}</h1>
+  </div>
+
+  @if (isLoadingExistingData) {
+    <div class="loading-full">
+      <mat-spinner diameter="44"></mat-spinner>
+      <p>กำลังดึงข้อมูลร้านอาหาร...</p>
+    </div>
+  }
+
+  @if (!isLoadingExistingData) {
+    <div class="form-container">
+      <form (ngSubmit)="onSubmit()" #restaurantForm="ngForm">
+        
+        <!-- Basic Details Section -->
+        <mat-card class="form-card">
+          <mat-card-header>
+            <mat-card-title>ข้อมูลร้านอาหาร</mat-card-title>
+          </mat-card-header>
+          <mat-card-content>
+            <div class="full-width">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>ชื่อร้านอาหาร *</mat-label>
+                <input
+                  matInput
+                  [(ngModel)]="name"
+                  name="name"
+                  required
+                  placeholder="เช่น ร้านส้มตำป้าศรี"
+                />
+              </mat-form-field>
+            </div>
+
+            <div class="full-width">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>รายละเอียด / สโลแกนร้าน</mat-label>
+                <textarea
+                  matInput
+                  rows="3"
+                  [(ngModel)]="description"
+                  name="description"
+                  placeholder="เช่น อาหารอีสานรสแซ่บ เปิด 10:00 - 20:00"
+                ></textarea>
+              </mat-form-field>
+            </div>
+
+            <div class="full-width">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>สถานะร้าน</mat-label>
+                <mat-select [(ngModel)]="status" name="status">
+                  <mat-option value="ACTIVE">เปิดให้บริการ (ACTIVE)</mat-option>
+                  <mat-option value="INACTIVE">ปิดชั่วคราว (INACTIVE)</mat-option>
+                </mat-select>
+              </mat-form-field>
+            </div>
+
+            <!-- Cover Image Upload Block (Bottom of Card) -->
+            <div class="upload-block">
+              <label class="upload-label">รูปภาพปกของร้าน</label>
+              
+              <div class="upload-actions">
+                <input
+                  type="file"
+                  #coverFileInput
+                  (change)="onCoverFileSelected($event)"
+                  accept="image/*"
+                  style="display: none"
+                />
+
+                <button
+                  mat-stroked-button
+                  color="primary"
+                  type="button"
+                  class="upload-btn"
+                  (click)="coverFileInput.click()"
+                  [disabled]="isUploadingCover"
+                >
+                  @if (isUploadingCover) {
+                    <mat-spinner diameter="18"></mat-spinner>
+                    กำลังอัปโหลด...
+                  } @else {
+                    <mat-icon>cloud_upload</mat-icon>
+                    เลือกรูปภาพปกจากเครื่อง
+                  }
+                </button>
+
+                @if (imageUrl) {
+                  <button mat-stroked-button color="warn" type="button" class="upload-btn" (click)="clearCoverImage()">
+                    <mat-icon>delete</mat-icon>
+                    ลบรูปภาพ
+                  </button>
+                }
+              </div>
+
+              @if (imageUrl) {
+                <div class="image-preview-box">
+                  <img [src]="imageUrl" alt="Cover preview" (error)="imageUrl = ''" />
+                </div>
+              }
+            </div>
+
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Map Location Picker Section -->
+        <mat-card class="form-card">
+          <mat-card-header class="map-header">
+            <mat-card-title>พิกัดตำแหน่งร้านบนแผนที่</mat-card-title>
+            <button mat-stroked-button color="primary" class="touch-btn" (click)="useCurrentLocation()" type="button">
+              <mat-icon>my_location</mat-icon>
+              ใช้ตำแหน่งปัจจุบัน
+            </button>
+          </mat-card-header>
+          <mat-card-content>
+            <p class="map-help-text">คลิกบนแผนที่ หรือลากหมุดไปยังตำแหน่งของร้าน</p>
+            
+            <div #pickerMapContainer class="picker-map"></div>
+
+            <div class="coords-row">
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Latitude (ละติจูด)</mat-label>
+                <input matInput type="number" step="0.000001" [(ngModel)]="latitude" name="latitude" required />
+              </mat-form-field>
+
+              <mat-form-field appearance="outline" class="w-100">
+                <mat-label>Longitude (ลองจิจูด)</mat-label>
+                <input matInput type="number" step="0.000001" [(ngModel)]="longitude" name="longitude" required />
+              </mat-form-field>
+            </div>
+          </mat-card-content>
+        </mat-card>
+
+        <!-- Menus Management Section -->
+        <mat-card class="form-card">
+          <mat-card-header class="menu-header">
+            <mat-card-title>รายการเมนูแนะนำ</mat-card-title>
+            <button mat-flat-button color="primary" class="touch-btn" (click)="addMenuField()" type="button">
+              <mat-icon>add</mat-icon>
+              เพิ่มเมนูใหม่
+            </button>
+          </mat-card-header>
+          <mat-card-content>
+            @for (menu of menus; track $index) {
+              <div class="menu-form-box">
+                
+                <div class="menu-inputs-row">
+                  <mat-form-field appearance="outline" class="menu-name-field">
+                    <mat-label>ชื่อเมนู</mat-label>
+                    <input matInput [(ngModel)]="menu.name" [name]="'menuName_' + $index" placeholder="เช่น ส้มตำไทย" />
+                  </mat-form-field>
+
+                  <mat-form-field appearance="outline" class="menu-price-field">
+                    <mat-label>ราคา (บาท)</mat-label>
+                    <input matInput type="number" [(ngModel)]="menu.price" [name]="'menuPrice_' + $index" placeholder="60" />
+                  </mat-form-field>
+
+                  @if (menus.length > 1) {
+                    <button mat-icon-button color="warn" (click)="removeMenuField($index)" type="button">
+                      <mat-icon>delete</mat-icon>
+                    </button>
+                  }
+                </div>
+
+                <div class="full-width">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>รายละเอียดเมนู (ถ้ามี)</mat-label>
+                    <input matInput [(ngModel)]="menu.description" [name]="'menuDesc_' + $index" placeholder="เช่น เผ็ดน้อย, ใส่ถั่ว" />
+                  </mat-form-field>
+                </div>
+
+                <!-- Menu Image Upload Block (Bottom of Menu Box) -->
+                <div class="upload-block">
+                  <label class="upload-label">รูปภาพเมนู</label>
+                  
+                  <div class="upload-actions">
+                    <input
+                      type="file"
+                      #menuFileInput
+                      (change)="onMenuFileSelected($event, $index)"
+                      accept="image/*"
+                      style="display: none"
+                    />
+
+                    <button
+                      mat-stroked-button
+                      color="primary"
+                      type="button"
+                      class="upload-btn"
+                      (click)="menuFileInput.click()"
+                      [disabled]="uploadingMenuIndex === $index"
+                    >
+                      @if (uploadingMenuIndex === $index) {
+                        <mat-spinner diameter="18"></mat-spinner>
+                        กำลังอัปโหลด...
+                      } @else {
+                        <mat-icon>photo_camera</mat-icon>
+                        เลือกรูปภาพเมนูจากเครื่อง
+                      }
+                    </button>
+
+                    @if (menu.imageUrl) {
+                      <button mat-stroked-button color="warn" type="button" class="upload-btn" (click)="clearMenuImage($index)">
+                        <mat-icon>delete</mat-icon>
+                        ลบรูปภาพ
+                      </button>
+                    }
+                  </div>
+
+                  @if (menu.imageUrl) {
+                    <div class="image-preview-box">
+                      <img [src]="menu.imageUrl" alt="Menu preview" (error)="menu.imageUrl = ''" />
+                    </div>
+                  }
+                </div>
+
+              </div>
+            }
+          </mat-card-content>
+        </mat-card>
+
+        @if (errorMessage) {
+          <div class="error-banner">
+            {{ errorMessage }}
+          </div>
+        }
+
+        <!-- Submit Actions -->
+        <div class="submit-row">
+          <button mat-button type="button" routerLink="/home" class="touch-btn">ยกเลิก</button>
+          <button mat-raised-button color="primary" type="submit" class="touch-btn submit-btn" [disabled]="isSubmitting">
+            @if (isSubmitting) {
+              <mat-spinner diameter="20"></mat-spinner>
+            } @else {
+              <mat-icon>save</mat-icon>
+            }
+            {{ isEditMode ? 'บันทึกการแก้ไขร้านอาหาร' : 'บันทึกร้านอาหาร' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  }
+</div>
