@@ -54,7 +54,6 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
   restaurantId: string | null = null;
   isEditMode = false;
   isLoadingExistingData = false;
-  activeStep = 1;
 
   name = '';
   description = '';
@@ -87,17 +86,6 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
       this.restaurantId = id;
       this.isEditMode = true;
       this.loadExistingData(id);
-    }
-  }
-
-  scrollToStep(stepNum: number): void {
-    this.activeStep = stepNum;
-    if (!isPlatformBrowser(this.platformId)) return;
-
-    const targetId = `step-${stepNum}`;
-    const el = document.getElementById(targetId);
-    if (el) {
-      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
   }
 
@@ -142,16 +130,18 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.L = await import('leaflet');
+    const leafletModule = await import('leaflet');
+    this.L = leafletModule.default || leafletModule;
+
     this.fixLeafletIcons();
     this.initPickerMap();
   }
 
   private fixLeafletIcons(): void {
-    const L = this.L.default ?? this.L;
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
+    if (!this.L) return;
+    delete (this.L.Icon.Default.prototype as any)._getIconUrl;
 
-    L.Icon.Default.mergeOptions({
+    this.L.Icon.Default.mergeOptions({
       iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
       iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
       shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
@@ -160,10 +150,11 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
       popupAnchor: [1, -34],
       shadowSize: [41, 41]
     });
-    this.L = L;
   }
 
   private initPickerMap(): void {
+    if (!this.L || !this.pickerMapContainer?.nativeElement) return;
+
     this.map = this.L.map(this.pickerMapContainer.nativeElement).setView(
       [this.latitude, this.longitude],
       14
@@ -195,7 +186,8 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
   }
 
   useCurrentLocation(): void {
-    if (!isPlatformBrowser(this.platformId) || !navigator.geolocation) return;
+    if (!isPlatformBrowser(this.platformId) || !this.L) return;
+    if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
       (pos) => {
