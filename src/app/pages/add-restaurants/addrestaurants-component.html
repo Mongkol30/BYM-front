@@ -82,11 +82,15 @@
                   [disabled]="isUploadingCover"
                 >
                   @if (isUploadingCover) {
-                    <mat-spinner diameter="18"></mat-spinner>
-                    กำลังอัปโหลด...
+                    <ng-container>
+                      <mat-spinner diameter="18"></mat-spinner>
+                      <span>กำลังอัปโหลด...</span>
+                    </ng-container>
                   } @else {
-                    <mat-icon>cloud_upload</mat-icon>
-                    เลือกรูปภาพปกจากเครื่อง
+                    <ng-container>
+                      <mat-icon>cloud_upload</mat-icon>
+                      <span>เลือกรูปภาพปกจากเครื่อง</span>
+                    </ng-container>
                   }
                 </button>
 
@@ -196,11 +200,15 @@
                       [disabled]="uploadingMenuIndex === $index"
                     >
                       @if (uploadingMenuIndex === $index) {
-                        <mat-spinner diameter="18"></mat-spinner>
-                        กำลังอัปโหลด...
+                        <ng-container>
+                          <mat-spinner diameter="18"></mat-spinner>
+                          <span>กำลังอัปโหลด...</span>
+                        </ng-container>
                       } @else {
-                        <mat-icon>photo_camera</mat-icon>
-                        เลือกรูปภาพเมนูจากเครื่อง
+                        <ng-container>
+                          <mat-icon>photo_camera</mat-icon>
+                          <span>เลือกรูปภาพเมนูจากเครื่อง</span>
+                        </ng-container>
                       }
                     </button>
 
