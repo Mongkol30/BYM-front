@@ -1,0 +1,237 @@
+.add-page-wrapper {
+  min-height: 100vh;
+  background: #f8fafc;
+  padding-bottom: 40px;
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 24px;
+    background: #ffffff;
+    border-bottom: 1px solid #e2e8f0;
+
+    h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+      color: #0f172a;
+
+      @media (max-width: 600px) {
+        font-size: 16px;
+      }
+    }
+  }
+
+  .loading-full {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    color: #64748b;
+    gap: 16px;
+  }
+
+  .form-container {
+    max-width: 720px;
+    margin: 24px auto;
+    padding: 0 16px;
+
+    @media (max-width: 600px) {
+      margin: 14px auto;
+      padding: 0 12px;
+    }
+
+    .form-card {
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+
+      mat-card-header {
+        margin-bottom: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+
+        mat-card-title {
+          font-size: 16px;
+          font-weight: 600;
+          color: #1e293b;
+        }
+
+        &.map-header, &.menu-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          gap: 12px;
+          flex-wrap: wrap;
+        }
+      }
+
+      .full-width {
+        width: 100%;
+        margin-bottom: 16px;
+
+        .w-100 {
+          width: 100%;
+
+          ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+            display: none;
+          }
+        }
+      }
+
+      .touch-btn {
+        min-height: 44px;
+        border-radius: 8px;
+        font-weight: 500;
+      }
+
+      /* Shared Upload Block Design (Bottom of Card / Box) */
+      .upload-block {
+        margin-top: 16px;
+        padding: 16px;
+        background: #ffffff;
+        border: 1px dashed #cbd5e1;
+        border-radius: 10px;
+
+        .upload-label {
+          display: block;
+          font-size: 14px;
+          font-weight: 600;
+          color: #334155;
+          margin-bottom: 10px;
+        }
+
+        .upload-actions {
+          display: flex;
+          gap: 12px;
+          align-items: center;
+          flex-wrap: wrap;
+
+          .upload-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 44px;
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0 16px;
+          }
+        }
+
+        .image-preview-box {
+          margin-top: 12px;
+          width: 100%;
+
+          img {
+            width: 100%;
+            max-height: 200px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+          }
+        }
+      }
+
+      .map-help-text {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 0;
+        margin-bottom: 14px;
+      }
+
+      .picker-map {
+        width: 100%;
+        height: 280px;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        margin-bottom: 16px;
+
+        @media (max-width: 600px) {
+          height: 220px;
+        }
+      }
+
+      .coords-row {
+        display: flex;
+        gap: 16px;
+
+        @media (max-width: 600px) {
+          flex-direction: column;
+          gap: 0;
+        }
+
+        .w-100 {
+          width: 100%;
+        }
+      }
+
+      .menu-form-box {
+        padding: 16px;
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        margin-bottom: 20px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        @media (max-width: 600px) {
+          padding: 12px;
+        }
+
+        .menu-inputs-row {
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          margin-bottom: 16px;
+
+          .menu-name-field {
+            flex: 2;
+
+            ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+              display: none;
+            }
+          }
+
+          .menu-price-field {
+            flex: 1;
+
+            ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+              display: none;
+            }
+          }
+        }
+      }
+    }
+
+    .error-banner {
+      padding: 12px 16px;
+      background: #fee2e2;
+      color: #991b1b;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .submit-row {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+      margin-top: 24px;
+
+      .submit-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 0 24px;
+        min-height: 48px;
+        font-size: 15px;
+      }
+    }
+  }
+}
