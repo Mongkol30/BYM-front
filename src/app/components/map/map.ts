@@ -59,8 +59,12 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    this.L = await import('leaflet');
+    const leafletModule = await import('leaflet');
+    this.L = leafletModule.default || leafletModule;
+
+    this.fixLeafletIcons();
     this.initMap();
+
     this.myIcon = this.L.divIcon({
       html: `
         <div class="user-location-pin">
@@ -74,6 +78,21 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     });
   }
 
+  private fixLeafletIcons(): void {
+    if (!this.L) return;
+    delete (this.L.Icon.Default.prototype as any)._getIconUrl;
+
+    this.L.Icon.Default.mergeOptions({
+      iconRetinaUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png',
+      iconUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png',
+      shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+      iconSize: [25, 41],
+      iconAnchor: [12, 41],
+      popupAnchor: [1, -34],
+      shadowSize: [41, 41]
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['pinLocations'] && this.map) {
       this.loadRestaurantPins();
@@ -81,6 +100,8 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private initMap(): void {
+    if (!this.L || !this.mapContainer?.nativeElement) return;
+
     this.map = this.L.map(this.mapContainer.nativeElement, {
       zoomControl: false
     }).setView(
@@ -108,7 +129,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   private loadRestaurantPins(): void {
-    if (!this.map) return;
+    if (!this.map || !this.L) return;
 
     this.restaurantMarkers.forEach(marker => this.map.removeLayer(marker));
     this.restaurantMarkers = [];
@@ -166,7 +187,7 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   }
 
   getCurrentLocation(): void {
-    if (!isPlatformBrowser(this.platformId)) return;
+    if (!isPlatformBrowser(this.platformId) || !this.L) return;
     if (!navigator.geolocation) return;
 
     navigator.geolocation.getCurrentPosition(
@@ -177,7 +198,6 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
           this.map.removeLayer(this.currentMarker);
         }
 
-        // Add blue pulse marker without text popup
         this.currentMarker = this.L.marker(
           [latitude, longitude],
           { icon: this.myIcon }
