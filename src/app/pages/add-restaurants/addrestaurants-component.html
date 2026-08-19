@@ -19,11 +19,11 @@
       <form (ngSubmit)="onSubmit()" #restaurantForm="ngForm">
         
         <!-- Basic Details Section -->
-        <mat-card class="form-card">
-          <mat-card-header>
-            <mat-card-title>ข้อมูลร้านอาหาร</mat-card-title>
-          </mat-card-header>
-          <mat-card-content>
+        <div class="diary-card">
+          <div class="diary-card-header">
+            <h2>📝 ข้อมูลทั่วไปของร้าน</h2>
+          </div>
+          <div class="diary-card-content">
             <div class="full-width">
               <mat-form-field appearance="outline" class="w-100">
                 <mat-label>ชื่อร้านอาหาร *</mat-label>
@@ -61,70 +61,54 @@
             </div>
 
             <!-- Cover Image Upload Block (Bottom of Card) -->
-            <div class="upload-block">
-              <label class="upload-label">รูปภาพปกของร้าน</label>
-              
-              <div class="upload-actions">
-                <input
-                  type="file"
-                  #coverFileInput
-                  (change)="onCoverFileSelected($event)"
-                  accept="image/*"
-                  style="display: none"
-                />
-
-                <button
-                  mat-stroked-button
-                  color="primary"
-                  type="button"
-                  class="upload-btn"
-                  (click)="coverFileInput.click()"
-                  [disabled]="isUploadingCover"
-                >
+            <div class="upload-block" [class.has-image]="!!imageUrl">
+              @if (!imageUrl) {
+                <div class="upload-placeholder" (click)="coverFileInput.click()">
+                  <mat-icon>add_photo_alternate</mat-icon>
+                  <span>เพิ่มรูปหน้าร้านสวยๆ</span>
                   @if (isUploadingCover) {
-                    <ng-container>
-                      <mat-spinner diameter="18"></mat-spinner>
-                      <span>กำลังอัปโหลด...</span>
-                    </ng-container>
-                  } @else {
-                    <ng-container>
-                      <mat-icon>cloud_upload</mat-icon>
-                      <span>เลือกรูปภาพปกจากเครื่อง</span>
-                    </ng-container>
+                    <mat-spinner diameter="20"></mat-spinner>
                   }
-                </button>
-
-                @if (imageUrl) {
-                  <button mat-stroked-button color="warn" type="button" class="upload-btn" (click)="clearCoverImage()">
-                    <mat-icon>delete</mat-icon>
-                    ลบรูปภาพ
-                  </button>
-                }
-              </div>
-
-              @if (imageUrl) {
+                </div>
+              } @else {
                 <div class="image-preview-box">
                   <img [src]="imageUrl" alt="Cover preview" (error)="imageUrl = ''" />
+                  <button mat-mini-fab color="warn" class="delete-img-btn" type="button" (click)="clearCoverImage()">
+                    <mat-icon>delete</mat-icon>
+                  </button>
                 </div>
               }
+              <input
+                type="file"
+                #coverFileInput
+                (change)="onCoverFileSelected($event)"
+                accept="image/*"
+                style="display: none"
+              />
             </div>
 
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
         <!-- Map Location Picker Section -->
-        <mat-card class="form-card">
-          <mat-card-header class="map-header">
-            <mat-card-title>พิกัดตำแหน่งร้านบนแผนที่</mat-card-title>
+        <div class="diary-card">
+          <div class="diary-card-header map-header">
+            <h2>📍 ปักหมุดร้านโปรด</h2>
             <button mat-stroked-button color="primary" class="touch-btn" (click)="useCurrentLocation()" type="button">
               <mat-icon>my_location</mat-icon>
               ใช้ตำแหน่งปัจจุบัน
             </button>
-          </mat-card-header>
-          <mat-card-content>
+          </div>
+          <div class="diary-card-content">
             <p class="map-help-text">คลิกบนแผนที่ หรือลากหมุดไปยังตำแหน่งของร้าน</p>
             
-            <div #pickerMapContainer class="picker-map"></div>
+            <div class="map-wrapper" [class.fullscreen]="isMapFullscreen">
+              <div #pickerMapContainer class="picker-map"></div>
+              
+              <button mat-mini-fab class="fullscreen-btn" type="button" (click)="toggleMapFullscreen()" title="ขยายแผนที่เต็มจอ">
+                <mat-icon>{{ isMapFullscreen ? 'fullscreen_exit' : 'fullscreen' }}</mat-icon>
+              </button>
+            </div>
 
             <div class="coords-row">
               <mat-form-field appearance="outline" class="w-100">
@@ -137,19 +121,19 @@
                 <input matInput type="number" step="0.000001" [(ngModel)]="longitude" name="longitude" required />
               </mat-form-field>
             </div>
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
         <!-- Menus Management Section -->
-        <mat-card class="form-card">
-          <mat-card-header class="menu-header">
-            <mat-card-title>รายการเมนูแนะนำ</mat-card-title>
+        <div class="diary-card">
+          <div class="diary-card-header menu-header">
+            <h2>🍽️ เมนูเด็ดที่ต้องสั่ง</h2>
             <button mat-flat-button color="primary" class="touch-btn" (click)="addMenuField()" type="button">
               <mat-icon>add</mat-icon>
               เพิ่มเมนูใหม่
             </button>
-          </mat-card-header>
-          <mat-card-content>
+          </div>
+          <div class="diary-card-content">
             @for (menu of menus; track $index) {
               <div class="menu-form-box">
                 
@@ -179,58 +163,36 @@
                 </div>
 
                 <!-- Menu Image Upload Block (Bottom of Menu Box) -->
-                <div class="upload-block">
-                  <label class="upload-label">รูปภาพเมนู</label>
-                  
-                  <div class="upload-actions">
-                    <input
-                      type="file"
-                      #menuFileInput
-                      (change)="onMenuFileSelected($event, $index)"
-                      accept="image/*"
-                      style="display: none"
-                    />
-
-                    <button
-                      mat-stroked-button
-                      color="primary"
-                      type="button"
-                      class="upload-btn"
-                      (click)="menuFileInput.click()"
-                      [disabled]="uploadingMenuIndex === $index"
-                    >
+                <div class="upload-block menu-upload-block" [class.has-image]="!!menu.imageUrl">
+                  @if (!menu.imageUrl) {
+                    <div class="upload-placeholder" (click)="menuFileInput.click()">
+                      <mat-icon>add_photo_alternate</mat-icon>
+                      <span>เพิ่มรูปภาพเมนู</span>
                       @if (uploadingMenuIndex === $index) {
-                        <ng-container>
-                          <mat-spinner diameter="18"></mat-spinner>
-                          <span>กำลังอัปโหลด...</span>
-                        </ng-container>
-                      } @else {
-                        <ng-container>
-                          <mat-icon>photo_camera</mat-icon>
-                          <span>เลือกรูปภาพเมนูจากเครื่อง</span>
-                        </ng-container>
+                        <mat-spinner diameter="20"></mat-spinner>
                       }
-                    </button>
-
-                    @if (menu.imageUrl) {
-                      <button mat-stroked-button color="warn" type="button" class="upload-btn" (click)="clearMenuImage($index)">
-                        <mat-icon>delete</mat-icon>
-                        ลบรูปภาพ
-                      </button>
-                    }
-                  </div>
-
-                  @if (menu.imageUrl) {
+                    </div>
+                  } @else {
                     <div class="image-preview-box">
                       <img [src]="menu.imageUrl" alt="Menu preview" (error)="menu.imageUrl = ''" />
+                      <button mat-mini-fab color="warn" class="delete-img-btn" type="button" (click)="clearMenuImage($index)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
                     </div>
                   }
+                  <input
+                    type="file"
+                    #menuFileInput
+                    (change)="onMenuFileSelected($event, $index)"
+                    accept="image/*"
+                    style="display: none"
+                  />
                 </div>
 
               </div>
             }
-          </mat-card-content>
-        </mat-card>
+          </div>
+        </div>
 
         @if (errorMessage) {
           <div class="error-banner">
