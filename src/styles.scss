@@ -6,7 +6,7 @@ html {
   @include mat.theme(
     (
       color: (
-        primary: mat.$orange-palette,
+        primary: mat.$rose-palette,
         tertiary: mat.$red-palette,
       ),
       typography: Roboto,
@@ -16,19 +16,19 @@ html {
 }
 
 :root {
-  /* Food Journal Design System Variables */
-  --color-primary: #EE8A6A;      /* Richer Peach */
-  --color-primary-hover: #E37450;
-  --color-secondary: #E09A9F;    /* Deeper Soft Pink */
-  --color-accent-green: #90B386; /* Richer Sage */
-  --color-accent-yellow: #EBB644;
-  --color-bg: #FFF7EB;           
+  /* Food Journal Design System Variables - Cotton Candy & Sky */
+  --color-primary: #FF85A1;      /* Bright Cotton Candy Pink */
+  --color-primary-hover: #FA6B8E;
+  --color-secondary: #85C7F2;    /* Sky Blue */
+  --color-accent-green: #90E3B6; /* Bright Pastel Mint */
+  --color-accent-yellow: #FFD166; /* Sunny Yellow */
+  --color-bg: #EDF3FE;           /* Noticeable Soft Sky Blue */
   --color-surface: #FFFFFF;
-  --color-soft-surface: #F2E5D5; 
-  --color-text-primary: #2C2825; /* Darker Text */
-  --color-text-secondary: #706862;
-  --color-border: #E3D4C2;       
-  --shadow-subtle: 0 6px 24px rgba(44, 40, 37, 0.1); /* Slightly stronger shadow */
+  --color-soft-surface: #DCE6FA; /* Noticeable darker soft blue */
+  --color-text-primary: #3B3C4A; /* Soft Navy Grey */
+  --color-text-secondary: #8B8C9C;
+  --color-border: #DFE4F2;       
+  --shadow-subtle: 0 6px 24px rgba(133, 199, 242, 0.15); /* Soft blue shadow */
   --border-radius-card: 16px;
   --border-radius-btn: 12px;
   --border-radius-input: 12px;
@@ -37,15 +37,59 @@ html {
   --font-family: 'Inter', 'Prompt', sans-serif;
 
   /* Restaurant Category Colors */
-  --category-japanese: #E09A9F;
-  --category-italian: #EBAA75;
-  --category-thai: #EBB644;
-  --category-steak: #C98865;
-  --category-cafe: #BAA188;
-  --category-healthy: #90B386;
-  --category-dessert: #C4A5D9;
-  --category-fastfood: #E39582;
-  --category-default: #E3D4C2;
+  --category-japanese: #FF85A1;
+  --category-italian: #FFB7B2;
+  --category-thai: #FFD166;
+  --category-steak: #FFA590;
+  --category-cafe: #D2C4D6;
+  --category-healthy: #90E3B6;
+  --category-dessert: #C4B5FD;
+  --category-fastfood: #85C7F2;
+}
+
+/* --- Override Angular Material MDC Colors to match Custom Theme --- */
+.mat-primary, 
+.mat-mdc-button-base.mat-primary, 
+.mat-mdc-icon-button.mat-primary,
+.mat-mdc-fab.mat-primary,
+.mat-mdc-mini-fab.mat-primary {
+  --mdc-filled-button-container-color: var(--color-primary) !important;
+  --mdc-protected-button-container-color: var(--color-primary) !important;
+  --mdc-fab-container-color: var(--color-primary) !important;
+  --mdc-text-button-label-text-color: var(--color-primary) !important;
+  --mdc-outlined-button-label-text-color: var(--color-primary) !important;
+  --mdc-circular-progress-active-indicator-color: var(--color-primary) !important;
+  --mat-mdc-focus-indicator-color: var(--color-primary) !important;
+  --mdc-icon-button-icon-color: var(--color-primary) !important;
+  --mat-icon-color: var(--color-primary) !important;
+}
+
+.mat-accent,
+.mat-mdc-button-base.mat-accent {
+  --mdc-filled-button-container-color: var(--color-surface) !important;
+  --mdc-protected-button-container-color: var(--color-surface) !important;
+  --mdc-fab-container-color: var(--color-surface) !important;
+  --mdc-text-button-label-text-color: var(--color-primary) !important;
+  --mdc-outlined-button-label-text-color: var(--color-primary) !important;
+  --mdc-icon-button-icon-color: var(--color-primary) !important;
+  --mat-icon-color: var(--color-primary) !important;
+  color: var(--color-primary) !important;
+}
+
+/* Force specific icons to use primary if they don't have a color attribute */
+.search-field mat-icon,
+.edit-btn mat-icon,
+.location-btn mat-icon {
+  color: var(--color-primary) !important;
+}
+
+/* Fix leaflet popup icons */
+.custom-food-pin .pin-badge {
+  background: var(--color-primary) !important;
+  border-color: var(--color-surface) !important;
+}
+.user-pulse, .user-dot {
+  background: var(--color-primary) !important;
 }
 
 body {
@@ -137,6 +181,65 @@ button, .btn {
 }
 
 /* --- Global Map Filter (Soft Pastel) --- */
-::ng-deep .leaflet-tile-pane {
+.leaflet-tile-pane {
   filter: saturate(0.65) contrast(0.85) brightness(1.15);
+}
+
+/* --- Modern Autocomplete Dropdown Styles --- */
+.modern-autocomplete-panel {
+  border-radius: 16px !important;
+  box-shadow: var(--shadow-subtle) !important;
+  background-color: var(--color-surface) !important;
+  margin-top: 8px !important;
+  padding: 8px 0 !important;
+  overflow: hidden !important;
+  border: 1px solid var(--color-border) !important;
+
+  .mat-mdc-option {
+    min-height: 56px !important;
+    border-bottom: 1px solid rgba(0,0,0,0.03);
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    .mdc-list-item__primary-text {
+      width: 100%;
+    }
+    
+    .option-content {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      line-height: 1.4;
+      padding: 8px 0;
+      width: 100%;
+      
+      .restaurant-name {
+        font-weight: 600;
+        color: var(--color-text-primary);
+        font-size: 15px;
+      }
+      
+      .matched-menu {
+        font-size: 12px;
+        color: var(--color-primary);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-top: 2px;
+        
+        mat-icon {
+          font-size: 14px;
+          width: 14px;
+          height: 14px;
+        }
+      }
+    }
+    
+    &.mdc-list-item--selected,
+    &:hover {
+      background-color: var(--color-bg) !important;
+    }
+  }
 }

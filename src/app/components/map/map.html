@@ -2,31 +2,35 @@
 
   <!-- Search Bar Overlay -->
   <div class="search-overlay">
-    <mat-form-field appearance="outline" class="search-field">
-      <mat-label>ค้นหาร้านอาหาร หรือ สถานที่</mat-label>
+    <mat-form-field appearance="outline" class="search-field" subscriptSizing="dynamic">
+      <mat-label>ค้นหาร้านอาหาร หรือ เมนู</mat-label>
 
       <input
         matInput
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-        placeholder="เช่น ส้มตำ, ชาบู, สยาม"
+        [formControl]="searchControl"
+        [matAutocomplete]="auto"
+        placeholder="เช่น ส้มตำ, ชาบู..."
       />
 
-      <button
-        mat-icon-button
-        matSuffix
-        (click)="onSearch()"
-        type="button"
-      >
-        <mat-icon>search</mat-icon>
-      </button>
+      <mat-icon matSuffix>search</mat-icon>
+
+      <mat-autocomplete #auto="matAutocomplete" [displayWith]="displayFn" (optionSelected)="onOptionSelected($event)" panelClass="modern-autocomplete-panel">
+        @for (pin of pinLocations; track pin.restaurantId) {
+          <mat-option [value]="pin" class="modern-option">
+            <div class="option-content">
+              <span class="restaurant-name">{{ pin.restaurantName }}</span>
+              @if (pin.matchedMenuName) {
+                <span class="matched-menu">
+                  <mat-icon inline="true">restaurant_menu</mat-icon>
+                  {{ pin.matchedMenuName }}
+                </span>
+              }
+            </div>
+          </mat-option>
+        }
+      </mat-autocomplete>
     </mat-form-field>
 
-    @if (searchError) {
-      <p class="search-error">
-        {{ searchError }}
-      </p>
-    }
   </div>
 
   <!-- Loading Overlay -->

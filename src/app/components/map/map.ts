@@ -10,7 +10,8 @@ import {
   Output,
   EventEmitter,
   PLATFORM_ID,
-  Inject
+  Inject,
+  OnInit
 } from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
@@ -18,7 +19,10 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatInputModule } from '@angular/material/input';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { FormsModule } from '@angular/forms';
+import { MatAutocompleteModule } from '@angular/material/autocomplete';
+import { FormsModule, ReactiveFormsModule, FormControl } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged, takeUntil } from 'rxjs/operators';
 
 @Component({
   selector: 'app-map',
@@ -30,12 +34,14 @@ import { FormsModule } from '@angular/forms';
     MatIconModule,
     MatInputModule,
     MatFormFieldModule,
-    FormsModule
+    MatAutocompleteModule,
+    FormsModule,
+    ReactiveFormsModule
   ],
   templateUrl: './map.html',
   styleUrls: ['./map.scss']
 })
-export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
+export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges {
   @ViewChild('mapContainer') mapContainer!: ElementRef;
 
   @Input() pinLocations: any[] = [];
@@ -46,15 +52,26 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
   private L: any;
   private currentMarker: any;
   private restaurantMarkers: any[] = [];
+  private destroy$ = new Subject<void>();
 
-  searchQuery = '';
+  searchControl = new FormControl('');
   isLoading = true;
-  searchError = '';
   myIcon: any = '';
 
   constructor(
     @Inject(PLATFORM_ID) private platformId: Object
   ) { }
+
+  ngOnInit(): void {
+    this.searchControl.valueChanges.pipe(
+      debounceTime(300),
+      distinctUntilChanged(),
+      takeUntil(this.destroy$)
+    ).subscribe(value => {
+      const query = typeof value === 'string' ? value : (value as any)?.restaurantName || '';
+      this.searchChange.emit(query);
+    });
+  }
 
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
@@ -219,44 +236,23 @@ export class MapComponent implements AfterViewInit, OnDestroy, OnChanges {
     });
   }
 
-  onSearch(): void {
-    this.searchChange.emit(this.searchQuery);
-    if (this.searchQuery.trim()) {
-      this.searchPlace();
-    }
+  displayFn(pin: any): string {
+    return pin && pin.restaurantName ? pin.restaurantName : '';
   }
 
-  async searchPlace(): Promise<void> {
-    if (!this.searchQuery.trim()) return;
-
-    this.searchError = '';
-
-    const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(
-      this.searchQuery
-    )}&format=json&limit=1&accept-language=th`;
-
-    try {
-      const res = await fetch(url, {
-        headers: {
-          'Accept-Language': 'th'
-        }
-      });
-
-      const data = await res.json();
-
-      if (data.length > 0) {
-        const { lat, lon } = data[0];
-        this.flyToLocation(Number(lat), Number(lon), 14);
-      } else {
-        this.searchError = 'ไม่พบสถานที่ที่ค้นหา';
+  onOptionSelected(event: any): void {
+    const selectedPin = event.option.value;
+    if (selectedPin && selectedPin.latitude && selectedPin.longitude) {
+      this.flyToLocation(Number(selectedPin.latitude), Number(selectedPin.longitude), 16);
+      if (selectedPin.restaurantId) {
+        this.selectRestaurant.emit(selectedPin.restaurantId);
       }
-    } catch (error) {
-      console.error(error);
-      this.searchError = 'เกิดข้อผิดพลาด กรุณาลองใหม่';
     }
   }
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     this.map?.remove();
   }
 }
