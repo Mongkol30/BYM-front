@@ -5,4 +5,5 @@ export interface HomePinLocationsDto {
     imageUrl?: string;
     latitude: number;
     longitude: number;
+    matchedMenuName?: string;
 }

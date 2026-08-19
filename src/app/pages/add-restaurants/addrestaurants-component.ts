@@ -54,6 +54,7 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
   restaurantId: string | null = null;
   isEditMode = false;
   isLoadingExistingData = false;
+  isMapFullscreen = false;
 
   name = '';
   description = '';
@@ -114,10 +115,13 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
 
         this.isLoadingExistingData = false;
 
-        if (this.map && this.pickerMarker) {
-          this.map.setView([this.latitude, this.longitude], 15);
-          this.pickerMarker.setLatLng([this.latitude, this.longitude]);
-        }
+        setTimeout(async () => {
+          await this.tryInitMap();
+          if (this.map && this.pickerMarker) {
+            this.map.setView([this.latitude, this.longitude], 15);
+            this.pickerMarker.setLatLng([this.latitude, this.longitude]);
+          }
+        }, 50);
       },
       error: (err) => {
         console.error('Failed to load restaurant detail for edit:', err);
@@ -130,11 +134,21 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
   async ngAfterViewInit(): Promise<void> {
     if (!isPlatformBrowser(this.platformId)) return;
 
-    const leafletModule = await import('leaflet');
-    this.L = leafletModule.default || leafletModule;
+    if (!this.isEditMode) {
+      await this.tryInitMap();
+    }
+  }
 
-    this.fixLeafletIcons();
-    this.initPickerMap();
+  private async tryInitMap(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) return;
+    if (!this.L) {
+      const leafletModule = await import('leaflet');
+      this.L = leafletModule.default || leafletModule;
+      this.fixLeafletIcons();
+    }
+    if (!this.map) {
+      this.initPickerMap();
+    }
   }
 
   private fixLeafletIcons(): void {
@@ -262,6 +276,17 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
 
   removeMenuField(index: number): void {
     this.menus.splice(index, 1);
+  }
+
+  toggleMapFullscreen(): void {
+    this.isMapFullscreen = !this.isMapFullscreen;
+    
+    // Invalidate map size so leaflet can redraw properly
+    if (this.map) {
+      setTimeout(() => {
+        this.map.invalidateSize();
+      }, 300); // Wait for CSS transition
+    }
   }
 
   onSubmit(): void {
