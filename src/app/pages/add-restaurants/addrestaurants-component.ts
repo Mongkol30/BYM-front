@@ -20,6 +20,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatExpansionModule } from '@angular/material/expansion';
 import { RestaurantService, MenuDto, RestaurantRequestDto, RestaurantDetailDto } from '../../services/restaurant.service';
 import { ImageUploadService } from '../../services/image-upload.service';
 
@@ -39,7 +40,8 @@ import { ImageUploadService } from '../../services/image-upload.service';
     MatSelectModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatExpansionModule
   ],
   templateUrl: './addrestaurants-component.html',
   styleUrl: './addrestaurants-component.scss',
@@ -63,13 +65,20 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
   latitude: number = 13.7563;
   longitude: number = 100.5018;
 
-  menus: MenuDto[] = [
-    { name: '', price: 0, description: '', imageUrl: '' }
+  mainDishMenus: MenuDto[] = [
+    { name: '', price: 0, description: '', imageUrl: '', category: 'MAIN_DISH' }
+  ];
+  toppingMenus: MenuDto[] = [
+    { name: '', price: 0, description: '', imageUrl: '', category: 'TOPPING_SNACK' }
+  ];
+  beverageMenus: MenuDto[] = [
+    { name: '', price: 0, description: '', imageUrl: '', category: 'BEVERAGE' }
   ];
 
   isSubmitting = false;
   isUploadingCover = false;
-  uploadingMenuIndex: number | null = null;
+  isExtractingMenu = false;
+  uploadingMenuId: string | null = null;
   errorMessage = '';
 
   constructor(
@@ -102,15 +111,28 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
         if (detail.longitude) this.longitude = Number(detail.longitude);
 
         if (detail.menus && detail.menus.length > 0) {
-          this.menus = detail.menus.map(m => ({
-            id: m.id,
-            menuCode: m.menuCode,
-            name: m.name || '',
-            price: Number(m.price) || 0,
-            description: m.description || '',
-            imageUrl: m.imageUrl || '',
-            status: m.status || 'ACTIVE'
-          }));
+          this.mainDishMenus = [];
+          this.toppingMenus = [];
+          this.beverageMenus = [];
+          detail.menus.forEach(m => {
+            const parsedMenu = {
+              id: m.id,
+              menuCode: m.menuCode,
+              name: m.name || '',
+              price: Number(m.price) || 0,
+              description: m.description || '',
+              imageUrl: m.imageUrl || '',
+              status: m.status || 'ACTIVE',
+              category: m.category || 'MAIN_DISH'
+            };
+            if (parsedMenu.category === 'TOPPING_SNACK') this.toppingMenus.push(parsedMenu);
+            else if (parsedMenu.category === 'BEVERAGE') this.beverageMenus.push(parsedMenu);
+            else this.mainDishMenus.push(parsedMenu);
+          });
+          
+          if (this.mainDishMenus.length === 0) this.mainDishMenus.push({ name: '', price: 0, description: '', imageUrl: '', category: 'MAIN_DISH' });
+          if (this.toppingMenus.length === 0) this.toppingMenus.push({ name: '', price: 0, description: '', imageUrl: '', category: 'TOPPING_SNACK' });
+          if (this.beverageMenus.length === 0) this.beverageMenus.push({ name: '', price: 0, description: '', imageUrl: '', category: 'BEVERAGE' });
         }
 
         this.isLoadingExistingData = false;
@@ -126,7 +148,7 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
       error: (err) => {
         console.error('Failed to load restaurant detail for edit:', err);
         this.isLoadingExistingData = false;
-        this.snackBar.open('เกิดข้อผิดพลาดในการโหลดข้อมูลร้านค้า', 'ปิด', { duration: 3000 });
+        this.snackBar.open('เกิดข้อผิดพลาดในการโหลดข้อมูลร้านค้า', 'ปิด', { duration: 3000, panelClass: ['error-toast'] });
       }
     });
   }
@@ -229,63 +251,130 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
       next: (url) => {
         this.imageUrl = url;
         this.isUploadingCover = false;
-        this.snackBar.open('อัปโหลดรูปปกเรียบร้อยแล้ว', 'ตกลง', { duration: 2500 });
+        this.snackBar.open('อัปโหลดรูปปกเรียบร้อยแล้ว', 'ตกลง', { duration: 2500, panelClass: ['success-toast'] });
       },
       error: (err) => {
         console.error('Upload cover error:', err);
         this.isUploadingCover = false;
-        this.snackBar.open('อัปโหลดรูปภาพล้มเหลว', 'ปิด', { duration: 3000 });
+        this.snackBar.open('อัปโหลดรูปภาพล้มเหลว', 'ปิด', { duration: 3000, panelClass: ['error-toast'] });
       }
     });
   }
 
-  onMenuFileSelected(event: any, index: number): void {
+  onMenuFileSelected(event: any, category: string, index: number): void {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    this.uploadingMenuIndex = index;
+    this.uploadingMenuId = `${category}_${index}`;
     this.imageUploadService.uploadImage(file).subscribe({
       next: (url) => {
-        if (this.menus[index]) {
-          this.menus[index].imageUrl = url;
+        let menuArr = this.getMenuArray(category);
+        if (menuArr[index]) {
+          menuArr[index].imageUrl = url;
         }
-        this.uploadingMenuIndex = null;
-        this.snackBar.open('อัปโหลดรูปเมนูเรียบร้อยแล้ว', 'ตกลง', { duration: 2500 });
+        this.uploadingMenuId = null;
+        this.snackBar.open('อัปโหลดรูปเมนูเรียบร้อยแล้ว', 'ตกลง', { duration: 2500, panelClass: ['success-toast'] });
       },
       error: (err) => {
         console.error('Upload menu image error:', err);
-        this.uploadingMenuIndex = null;
-        this.snackBar.open('อัปโหลดรูปเมนูล้มเหลว', 'ปิด', { duration: 3000 });
+        this.uploadingMenuId = null;
+        this.snackBar.open('อัปโหลดรูปเมนูล้มเหลว', 'ปิด', { duration: 3000, panelClass: ['error-toast'] });
       }
     });
+  }
+
+  onAutoExtractMenuFileSelected(event: any): void {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    this.isExtractingMenu = true;
+    this.snackBar.open('กำลังบีบอัดรูปและสแกนด้วย AI...', '', { duration: 2000, panelClass: ['info-toast'] });
+
+    this.imageUploadService.fileToCompressedBase64(file, 800).then(base64 => {
+      this.restaurantService.extractMenuFromBase64(base64).subscribe({
+        next: (extractedMenus: MenuDto[]) => {
+          this.isExtractingMenu = false;
+          if (extractedMenus && extractedMenus.length > 0) {
+            
+            // Remove empty rows
+            this.mainDishMenus = this.mainDishMenus.filter(m => m.name.trim() !== '' || Number(m.price) > 0 || m.imageUrl !== '');
+            this.toppingMenus = this.toppingMenus.filter(m => m.name.trim() !== '' || Number(m.price) > 0 || m.imageUrl !== '');
+            this.beverageMenus = this.beverageMenus.filter(m => m.name.trim() !== '' || Number(m.price) > 0 || m.imageUrl !== '');
+            
+            // Append extracted menus
+            extractedMenus.forEach(em => {
+              const cat = em.category || 'MAIN_DISH';
+              const newMenu = {
+                name: em.name || '',
+                price: em.price || 0,
+                description: '',
+                imageUrl: '',
+                category: cat
+              };
+              if (cat === 'TOPPING_SNACK') this.toppingMenus.unshift(newMenu);
+              else if (cat === 'BEVERAGE') this.beverageMenus.unshift(newMenu);
+              else this.mainDishMenus.unshift(newMenu);
+            });
+            
+            if (this.mainDishMenus.length === 0) this.addMenuField('MAIN_DISH');
+            if (this.toppingMenus.length === 0) this.addMenuField('TOPPING_SNACK');
+            if (this.beverageMenus.length === 0) this.addMenuField('BEVERAGE');
+
+            this.snackBar.open(`เพิ่มข้อมูลเมนูอัตโนมัติ ${extractedMenus.length} รายการ`, 'ตกลง', { duration: 3500, panelClass: ['success-toast'] });
+          } else {
+            this.snackBar.open('ไม่พบข้อมูลเมนูในรูปภาพ', 'ปิด', { duration: 3000, panelClass: ['info-toast'] });
+          }
+        },
+        error: (err) => {
+          console.error('Extract menu error:', err);
+          this.isExtractingMenu = false;
+          let errMsg = 'สแกนเมนูล้มเหลว';
+          if (err.error && typeof err.error === 'string' && err.error.includes('Gemini API Key is missing')) {
+            errMsg = 'ยังไม่ได้ตั้งค่า Gemini API Key ในระบบ Backend';
+          }
+          this.snackBar.open(errMsg, 'ปิด', { duration: 4000, panelClass: ['error-toast'] });
+        }
+      });
+    }).catch(err => {
+      console.error('Compression error:', err);
+      this.isExtractingMenu = false;
+      this.snackBar.open('เกิดข้อผิดพลาดในการจัดการรูปภาพ', 'ปิด', { duration: 3000, panelClass: ['error-toast'] });
+    });
+    
+    event.target.value = null;
   }
 
   clearCoverImage(): void {
     this.imageUrl = '';
   }
 
-  clearMenuImage(index: number): void {
-    if (this.menus[index]) {
-      this.menus[index].imageUrl = '';
+  clearMenuImage(category: string, index: number): void {
+    let menuArr = this.getMenuArray(category);
+    if (menuArr[index]) {
+      menuArr[index].imageUrl = '';
     }
   }
 
-  addMenuField(): void {
-    this.menus.push({ name: '', price: 0, description: '', imageUrl: '' });
+  getMenuArray(category: string): MenuDto[] {
+    if (category === 'TOPPING_SNACK') return this.toppingMenus;
+    if (category === 'BEVERAGE') return this.beverageMenus;
+    return this.mainDishMenus;
   }
 
-  removeMenuField(index: number): void {
-    this.menus.splice(index, 1);
+  addMenuField(category: string): void {
+    this.getMenuArray(category).unshift({ name: '', price: 0, description: '', imageUrl: '', category });
+  }
+
+  removeMenuField(category: string, index: number): void {
+    this.getMenuArray(category).splice(index, 1);
   }
 
   toggleMapFullscreen(): void {
     this.isMapFullscreen = !this.isMapFullscreen;
-    
-    // Invalidate map size so leaflet can redraw properly
     if (this.map) {
       setTimeout(() => {
         this.map.invalidateSize();
-      }, 300); // Wait for CSS transition
+      }, 300);
     }
   }
 
@@ -302,7 +391,8 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
     this.errorMessage = '';
     this.isSubmitting = true;
 
-    const validMenus = this.menus
+    const allMenus = [...this.mainDishMenus, ...this.toppingMenus, ...this.beverageMenus];
+    const validMenus = allMenus
       .filter((m) => m.name && m.name.trim() !== '')
       .map((m) => ({
         id: m.id,
@@ -311,7 +401,8 @@ export class AddrestaurantsComponent implements OnInit, AfterViewInit {
         price: Number(m.price) || 0,
         description: m.description ? m.description.trim() : '',
         imageUrl: m.imageUrl ? m.imageUrl.trim() : '',
-        status: m.status || 'ACTIVE'
+        status: m.status || 'ACTIVE',
+        category: m.category || 'MAIN_DISH'
       }));
 
     const payload: RestaurantRequestDto = {

@@ -112,7 +112,10 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['pinLocations'] && this.map) {
-      this.loadRestaurantPins();
+      // Use setTimeout to ensure the DOM has updated
+      setTimeout(() => {
+        this.loadRestaurantPins();
+      }, 0);
     }
   }
 
@@ -129,19 +132,28 @@ export class MapComponent implements OnInit, AfterViewInit, OnDestroy, OnChanges
     this.L.control.zoom({ position: 'bottomleft' }).addTo(this.map);
 
     this.L.tileLayer(
-      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+      'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
       {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 19
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> &copy; <a href="https://carto.com/attributions">CARTO</a>',
+        maxZoom: 20
       }
     ).addTo(this.map);
 
     this.isLoading = false;
 
+    // Run invalidateSize to fix broken map renders on route navigation
+    setTimeout(() => {
+      if (this.map) {
+        this.map.invalidateSize();
+      }
+    }, 250);
+
     this.getCurrentLocation();
 
-    if (this.pinLocations.length > 0) {
-      this.loadRestaurantPins();
+    if (this.pinLocations && this.pinLocations.length > 0) {
+      setTimeout(() => {
+        this.loadRestaurantPins();
+      }, 0);
     }
   }
 

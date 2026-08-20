@@ -13,6 +13,8 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatExpansionModule } from '@angular/material/expansion';
+import { MenuDto } from '../../services/restaurant.service';
 
 @Component({
   selector: 'app-home',
@@ -28,7 +30,8 @@ import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
     MatChipsModule,
     MatDividerModule,
     MatProgressSpinnerModule,
-    MatSnackBarModule
+    MatSnackBarModule,
+    MatExpansionModule
   ],
   templateUrl: './home.html',
   styleUrl: './home.scss'
@@ -40,6 +43,11 @@ export class HomeComponent implements OnInit {
   selectedRestaurant: RestaurantDetailDto | null = null;
   isLoadingDetail = false;
   currentSearch = '';
+
+  mainDishMenus: MenuDto[] = [];
+  toppingMenus: MenuDto[] = [];
+  beverageMenus: MenuDto[] = [];
+  uncategorizedMenus: MenuDto[] = [];
 
   showDeleteModal = false;
   targetDeleteId: string | null = null;
@@ -82,10 +90,20 @@ export class HomeComponent implements OnInit {
   onRestaurantSelected(restaurantId: string): void {
     this.isLoadingDetail = true;
     this.selectedRestaurant = null;
+    this.mainDishMenus = [];
+    this.toppingMenus = [];
+    this.beverageMenus = [];
+    this.uncategorizedMenus = [];
 
     this.restaurantService.getRestaurantById(restaurantId).subscribe({
       next: (detail: RestaurantDetailDto) => {
         this.selectedRestaurant = detail;
+        if (detail.menus) {
+          this.mainDishMenus = detail.menus.filter(m => m.category === 'MAIN_DISH');
+          this.toppingMenus = detail.menus.filter(m => m.category === 'TOPPING_SNACK');
+          this.beverageMenus = detail.menus.filter(m => m.category === 'BEVERAGE');
+          this.uncategorizedMenus = detail.menus.filter(m => !m.category || !['MAIN_DISH', 'TOPPING_SNACK', 'BEVERAGE'].includes(m.category));
+        }
         this.isLoadingDetail = false;
       },
       error: (err) => {

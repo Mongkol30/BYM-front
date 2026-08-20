@@ -79,24 +79,74 @@
             <h4>🍽️ รายการเมนูเด็ด ({{ selectedRestaurant.menus ? selectedRestaurant.menus.length : 0 }})</h4>
 
             @if (selectedRestaurant.menus && selectedRestaurant.menus.length > 0) {
-              <div class="menu-list">
-                @for (menu of selectedRestaurant.menus; track menu.name) {
-                  <div class="menu-item">
-                    @if (menu.imageUrl) {
-                      <img [src]="menu.imageUrl" class="menu-thumb" alt="Menu Image" (error)="menu.imageUrl = ''" />
-                    }
-                    <div class="menu-info">
-                      <div class="menu-header">
-                        <span class="menu-name">{{ menu.name }}</span>
-                        <span class="menu-price">฿{{ menu.price }}</span>
-                      </div>
-                      @if (menu.description) {
-                        <p class="menu-desc">{{ menu.description }}</p>
+              
+              <ng-template #menuList let-menus="menus">
+                <div class="menu-list" style="margin-top: 8px;">
+                  @for (menu of menus; track menu.name) {
+                    <div class="menu-item">
+                      @if (menu.imageUrl) {
+                        <img [src]="menu.imageUrl" class="menu-thumb" alt="Menu Image" (error)="menu.imageUrl = ''" />
                       }
+                      <div class="menu-info">
+                        <div class="menu-header">
+                          <span class="menu-name">{{ menu.name }}</span>
+                          <span class="menu-price">฿{{ menu.price }}</span>
+                        </div>
+                        @if (menu.description) {
+                          <p class="menu-desc">{{ menu.description }}</p>
+                        }
+                      </div>
                     </div>
-                  </div>
+                  }
+                </div>
+              </ng-template>
+
+              <mat-accordion multi="true" class="menu-accordion">
+                @if (mainDishMenus.length > 0) {
+                  <mat-expansion-panel [expanded]="true" class="mat-elevation-z0" style="border: 1px solid #eee; margin-bottom: 8px; border-radius: 8px;">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon style="margin-right: 8px; color: #ff5722;">restaurant</mat-icon> Main Dish ({{ mainDishMenus.length }})
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <ng-container *ngTemplateOutlet="menuList; context: { menus: mainDishMenus }"></ng-container>
+                  </mat-expansion-panel>
                 }
-              </div>
+
+                @if (toppingMenus.length > 0) {
+                  <mat-expansion-panel [expanded]="mainDishMenus.length === 0" class="mat-elevation-z0" style="border: 1px solid #eee; margin-bottom: 8px; border-radius: 8px;">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon style="margin-right: 8px; color: #ff9800;">fastfood</mat-icon> Toppings & Snacks ({{ toppingMenus.length }})
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <ng-container *ngTemplateOutlet="menuList; context: { menus: toppingMenus }"></ng-container>
+                  </mat-expansion-panel>
+                }
+
+                @if (beverageMenus.length > 0) {
+                  <mat-expansion-panel [expanded]="mainDishMenus.length === 0 && toppingMenus.length === 0" class="mat-elevation-z0" style="border: 1px solid #eee; margin-bottom: 8px; border-radius: 8px;">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon style="margin-right: 8px; color: #03a9f4;">local_cafe</mat-icon> Beverages ({{ beverageMenus.length }})
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <ng-container *ngTemplateOutlet="menuList; context: { menus: beverageMenus }"></ng-container>
+                  </mat-expansion-panel>
+                }
+
+                @if (uncategorizedMenus.length > 0) {
+                  <mat-expansion-panel [expanded]="mainDishMenus.length === 0 && toppingMenus.length === 0 && beverageMenus.length === 0" class="mat-elevation-z0" style="border: 1px solid #eee; margin-bottom: 8px; border-radius: 8px;">
+                    <mat-expansion-panel-header>
+                      <mat-panel-title>
+                        <mat-icon style="margin-right: 8px; color: #9e9e9e;">category</mat-icon> อื่นๆ ({{ uncategorizedMenus.length }})
+                      </mat-panel-title>
+                    </mat-expansion-panel-header>
+                    <ng-container *ngTemplateOutlet="menuList; context: { menus: uncategorizedMenus }"></ng-container>
+                  </mat-expansion-panel>
+                }
+              </mat-accordion>
+
             } @else {
               <p class="no-menus">ยังไม่มีรายการเมนูอาหาร</p>
             }
@@ -117,7 +167,7 @@
             </a>
 
             <button
-              mat-stroked-button
+              mat-raised-button
               color="warn"
               (click)="promptDelete(selectedRestaurant.id)"
               type="button"

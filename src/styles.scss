@@ -150,33 +150,58 @@ button, .btn {
   }
 }
 
+
 /* Custom Snackbar Toast Notifications */
 .mat-mdc-snack-bar-container {
   &.success-toast {
-    --mdc-snackbar-container-color: #A8C3A0;
-    --mdc-snackbar-supporting-text-color: #3F3A36;
-    --mat-mdc-snack-bar-button-color: #3F3A36;
-    border-radius: 12px;
-    font-weight: 500;
-    box-shadow: var(--shadow-subtle);
+    --mdc-snackbar-container-color: #10B981 !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+    --mat-mdc-snack-bar-button-color: #ffffff !important;
+    
+    .mdc-snackbar__surface {
+      background-color: #10B981 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 24px -4px rgba(16, 185, 129, 0.5) !important;
+    }
+    .mdc-snackbar__label, .mat-mdc-button {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+      font-size: 15px !important;
+    }
   }
 
   &.error-toast {
-    --mdc-snackbar-container-color: #E8B4B8;
-    --mdc-snackbar-supporting-text-color: #3F3A36;
-    --mat-mdc-snack-bar-button-color: #3F3A36;
-    border-radius: 12px;
-    font-weight: 500;
-    box-shadow: var(--shadow-subtle);
+    --mdc-snackbar-container-color: #EF4444 !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+    --mat-mdc-snack-bar-button-color: #ffffff !important;
+    
+    .mdc-snackbar__surface {
+      background-color: #EF4444 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 24px -4px rgba(239, 68, 68, 0.5) !important;
+    }
+    .mdc-snackbar__label, .mat-mdc-button {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+      font-size: 15px !important;
+    }
   }
 
   &.info-toast {
-    --mdc-snackbar-container-color: #F6EEE6;
-    --mdc-snackbar-supporting-text-color: #3F3A36;
-    --mat-mdc-snack-bar-button-color: #3F3A36;
-    border-radius: 12px;
-    font-weight: 500;
-    box-shadow: var(--shadow-subtle);
+    --mdc-snackbar-container-color: #3B82F6 !important;
+    --mdc-snackbar-supporting-text-color: #ffffff !important;
+    --mat-mdc-snack-bar-button-color: #ffffff !important;
+    
+    .mdc-snackbar__surface {
+      background-color: #3B82F6 !important;
+      border-radius: 12px !important;
+      box-shadow: 0 8px 24px -4px rgba(59, 130, 246, 0.5) !important;
+    }
+    .mdc-snackbar__label, .mat-mdc-button {
+      color: #ffffff !important;
+      font-weight: 500 !important;
+      font-size: 15px !important;
+    }
   }
 }
 

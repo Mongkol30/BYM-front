@@ -11,6 +11,7 @@ export interface MenuDto {
   description?: string;
   imageUrl?: string;
   status?: string;
+  category?: string;
 }
 
 export interface RestaurantRequestDto {
@@ -66,5 +67,9 @@ export class RestaurantService {
       params = params.set('search', search.trim());
     }
     return this.http.get<any[]>(`${environment.apiUrl}/home/pins`, { params });
+  }
+
+  extractMenuFromBase64(base64Image: string): Observable<MenuDto[]> {
+    return this.http.post<MenuDto[]>(`${environment.apiUrl}/api/ai/extract-menu`, { base64Image });
   }
 }
