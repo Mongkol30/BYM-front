@@ -1,5 +1,13 @@
 <div class="elegant-page-wrapper">
   
+  @if (isExtractingMenu) {
+    <div class="ai-loading-overlay">
+      <mat-spinner diameter="64"></mat-spinner>
+      <p>กำลังประมวลผลด้วย AI...</p>
+      <span>กรุณารอสักครู่ ห้ามปิดหน้าจอ</span>
+    </div>
+  }
+
   <!-- Back Header Navigation (Floating) -->
   <div class="floating-header">
     <button mat-icon-button routerLink="/home" class="floating-back-btn" type="button">
@@ -109,73 +117,115 @@
         <div class="form-section">
           <div class="section-header">
             <label>DISHES ORDERED</label>
-            <button mat-stroked-button color="primary" class="touch-btn pill-btn-small" (click)="addMenuField()" type="button">
-              <mat-icon>add</mat-icon>
-              Add Dish
-            </button>
+            <div>
+              <button mat-stroked-button color="accent" class="touch-btn pill-btn-small" style="margin-right: 8px;" (click)="aiMenuInput.click()" type="button" [disabled]="isExtractingMenu">
+                <mat-icon>document_scanner</mat-icon>
+                @if (isExtractingMenu) { Scanning... } @else { Scan Menu (AI) }
+              </button>
+              <input type="file" #aiMenuInput (change)="onAutoExtractMenuFileSelected($event)" accept="image/*" style="display: none" />
+            </div>
           </div>
           
-          @for (menu of menus; track $index) {
-            <div class="elegant-menu-box">
-              @if (menus.length > 1) {
-                <button mat-icon-button color="warn" class="delete-menu-btn" (click)="removeMenuField($index)" type="button">
-                  <mat-icon>close</mat-icon>
-                </button>
-              }
-              
-              <div class="menu-inputs-row">
-                <div class="input-group w-100 mb-0">
-                  <label>ชื่อเมนูอาหาร</label>
-                  <mat-form-field appearance="outline" class="pill-input">
-                    <input matInput [(ngModel)]="menu.name" [name]="'menuName_' + $index" placeholder="เช่น ส้มตำไทย" />
-                  </mat-form-field>
-                </div>
-              </div>
-
-              <div class="input-group w-100 mb-0" style="margin-bottom: 16px !important;">
-                <label>ราคา (บาท)</label>
-                <mat-form-field appearance="outline" class="pill-input">
-                  <input matInput type="number" [(ngModel)]="menu.price" [name]="'menuPrice_' + $index" placeholder="เช่น 50" />
-                </mat-form-field>
-              </div>
-
-              <div class="menu-desc-row">
-                <div class="input-group w-100 mb-0">
-                  <label>รายละเอียด (ถ้ามี)</label>
-                  <mat-form-field appearance="outline" class="pill-input">
-                    <input matInput [(ngModel)]="menu.description" [name]="'menuDesc_' + $index" placeholder="เช่น ไม่เผ็ด, เผ็ดน้อย" />
-                  </mat-form-field>
-                </div>
-              </div>
-
-              <!-- Menu Image Upload -->
-              <div class="upload-block menu-upload-block" [class.has-image]="!!menu.imageUrl">
-                @if (!menu.imageUrl) {
-                  <div class="upload-placeholder" (click)="menuFileInput.click()">
-                    <mat-icon>add_a_photo</mat-icon>
-                    <span>Add Photo</span>
-                    @if (uploadingMenuIndex === $index) {
-                      <mat-spinner diameter="20"></mat-spinner>
-                    }
-                  </div>
-                } @else {
-                  <div class="image-preview-box">
-                    <img [src]="menu.imageUrl" alt="Menu preview" (error)="menu.imageUrl = ''" />
-                    <button mat-mini-fab color="warn" class="delete-img-btn" type="button" (click)="clearMenuImage($index)">
-                      <mat-icon>delete</mat-icon>
-                    </button>
-                  </div>
-                }
-                <input
-                  type="file"
-                  #menuFileInput
-                  (change)="onMenuFileSelected($event, $index)"
-                  accept="image/*"
-                  style="display: none"
-                />
-              </div>
+          <ng-template #menuForm let-menuArr="menuArr" let-catName="catName">
+            <div style="text-align: right; margin-bottom: 16px;">
+              <button mat-stroked-button color="primary" class="touch-btn pill-btn-small" (click)="addMenuField(catName); $event.stopPropagation()" type="button">
+                <mat-icon>add</mat-icon> เพิ่มเมนู
+              </button>
             </div>
-          }
+            @for (menu of menuArr; track $index) {
+              <div class="elegant-menu-box" style="display: flex; gap: 16px;">
+                @if (menuArr.length > 1) {
+                  <button mat-icon-button color="warn" class="delete-menu-btn" (click)="removeMenuField(catName, $index)" type="button">
+                    <mat-icon>close</mat-icon>
+                  </button>
+                }
+                
+                <!-- LEFT: Menu Image Upload -->
+                <div class="upload-block menu-upload-block" [class.has-image]="!!menu.imageUrl" style="flex: 0 0 120px; height: 120px; margin-top: 0; min-height: 120px; margin-top: 18px;">
+                  @if (!menu.imageUrl) {
+                    <div class="upload-placeholder" (click)="menuFileInput.click()" style="padding: 10px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
+                      <mat-icon style="margin-bottom: 4px;">add_a_photo</mat-icon>
+                      <span style="font-size: 11px;">Add Photo</span>
+                      @if (uploadingMenuId === catName + '_' + $index) {
+                        <mat-spinner diameter="20" style="margin-top: 8px;"></mat-spinner>
+                      }
+                    </div>
+                  } @else {
+                    <div class="image-preview-box" style="height: 100%; width: 100%;">
+                      <img [src]="menu.imageUrl" alt="Menu preview" (error)="menu.imageUrl = ''" style="height: 100%; width: 100%; object-fit: cover; border-radius: 16px;" />
+                      <button mat-mini-fab color="warn" class="delete-img-btn" type="button" (click)="clearMenuImage(catName, $index)">
+                        <mat-icon>delete</mat-icon>
+                      </button>
+                    </div>
+                  }
+                  <input
+                    type="file"
+                    #menuFileInput
+                    (change)="onMenuFileSelected($event, catName, $index)"
+                    accept="image/*"
+                    style="display: none"
+                  />
+                </div>
+
+                <!-- RIGHT: Details -->
+                <div class="menu-details-col" style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
+                  <div class="menu-inputs-row" style="display: flex; gap: 12px; margin-bottom: 0;">
+                    <div class="input-group mb-0" style="flex: 2;">
+                      <label>ชื่อเมนูอาหาร</label>
+                      <mat-form-field appearance="outline" class="pill-input">
+                        <input matInput [(ngModel)]="menu.name" [name]="catName + '_menuName_' + $index" placeholder="เช่น ส้มตำไทย" />
+                      </mat-form-field>
+                    </div>
+
+                    <div class="input-group mb-0" style="flex: 1;">
+                      <label>ราคา</label>
+                      <mat-form-field appearance="outline" class="pill-input">
+                        <input matInput type="number" [(ngModel)]="menu.price" [name]="catName + '_menuPrice_' + $index" placeholder="50" />
+                      </mat-form-field>
+                    </div>
+                  </div>
+
+                  <div class="menu-desc-row mt-2" style="margin-top: -12px;">
+                    <div class="input-group w-100 mb-0">
+                      <label>รายละเอียด (ถ้ามี)</label>
+                      <mat-form-field appearance="outline" class="pill-input">
+                        <input matInput [(ngModel)]="menu.description" [name]="catName + '_menuDesc_' + $index" placeholder="เช่น ไม่เผ็ด, เผ็ดน้อย" />
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </ng-template>
+
+          <mat-accordion multi="true">
+            <mat-expansion-panel [expanded]="true">
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon style="margin-right: 8px;">restaurant</mat-icon> Main Dish (อาหารจานหลัก)
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <ng-container *ngTemplateOutlet="menuForm; context: { menuArr: mainDishMenus, catName: 'MAIN_DISH' }"></ng-container>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon style="margin-right: 8px;">fastfood</mat-icon> Toppings & Snacks (ของกินเล่น)
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <ng-container *ngTemplateOutlet="menuForm; context: { menuArr: toppingMenus, catName: 'TOPPING_SNACK' }"></ng-container>
+            </mat-expansion-panel>
+
+            <mat-expansion-panel>
+              <mat-expansion-panel-header>
+                <mat-panel-title>
+                  <mat-icon style="margin-right: 8px;">local_cafe</mat-icon> Beverages (เครื่องดื่ม)
+                </mat-panel-title>
+              </mat-expansion-panel-header>
+              <ng-container *ngTemplateOutlet="menuForm; context: { menuArr: beverageMenus, catName: 'BEVERAGE' }"></ng-container>
+            </mat-expansion-panel>
+          </mat-accordion>
         </div>
 
         @if (errorMessage) {

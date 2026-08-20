@@ -34,7 +34,7 @@ export class ImageUploadService {
     return from(this.fileToCompressedBase64(file));
   }
 
-  private fileToCompressedBase64(file: File, maxWidth = 800): Promise<string> {
+  public fileToCompressedBase64(file: File, maxWidth = 800): Promise<string> {
     return new Promise((resolve) => {
       const reader = new FileReader();
       reader.onload = (e: any) => {
