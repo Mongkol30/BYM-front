@@ -311,14 +311,46 @@
           transform: scale(0.8);
         }
 
-        .menu-inputs-row {
+        .menu-flex-box {
           display: flex;
-          gap: 12px;
-          margin-bottom: 12px;
-          align-items: center;
+          gap: 16px;
+          flex-wrap: wrap; /* Allows wrapping on tiny screens */
+          
+          .menu-upload-block {
+            flex: 0 0 120px;
+            height: 120px;
+            margin-top: 18px;
+            min-height: 120px;
+          }
 
-          .menu-name-field { flex: 2; min-width: 0; }
-          .menu-price-field { flex: 1; min-width: 0; }
+          .menu-details-col {
+            flex: 1;
+            min-width: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+
+            .menu-inputs-row {
+              display: flex;
+              gap: 12px;
+              margin-bottom: 0;
+
+              .input-group {
+                min-width: 0;
+                
+                &.name-col { flex: 2; }
+                &.price-col { flex: 1; min-width: 80px; }
+              }
+            }
+
+            .menu-desc-row {
+              margin-top: -12px;
+            }
+
+            mat-form-field {
+              width: 100%;
+            }
+          }
         }
         
         .w-100 {
