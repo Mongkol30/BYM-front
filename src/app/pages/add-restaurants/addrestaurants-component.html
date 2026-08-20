@@ -133,7 +133,7 @@
               </button>
             </div>
             @for (menu of menuArr; track $index) {
-              <div class="elegant-menu-box" style="display: flex; gap: 16px;">
+              <div class="elegant-menu-box menu-flex-box">
                 @if (menuArr.length > 1) {
                   <button mat-icon-button color="warn" class="delete-menu-btn" (click)="removeMenuField(catName, $index)" type="button">
                     <mat-icon>close</mat-icon>
@@ -141,7 +141,7 @@
                 }
                 
                 <!-- LEFT: Menu Image Upload -->
-                <div class="upload-block menu-upload-block" [class.has-image]="!!menu.imageUrl" style="flex: 0 0 120px; height: 120px; margin-top: 0; min-height: 120px; margin-top: 18px;">
+                <div class="upload-block menu-upload-block" [class.has-image]="!!menu.imageUrl">
                   @if (!menu.imageUrl) {
                     <div class="upload-placeholder" (click)="menuFileInput.click()" style="padding: 10px; height: 100%; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                       <mat-icon style="margin-bottom: 4px;">add_a_photo</mat-icon>
@@ -168,16 +168,16 @@
                 </div>
 
                 <!-- RIGHT: Details -->
-                <div class="menu-details-col" style="flex: 1; display: flex; flex-direction: column; justify-content: flex-start;">
-                  <div class="menu-inputs-row" style="display: flex; gap: 12px; margin-bottom: 0;">
-                    <div class="input-group mb-0" style="flex: 2;">
+                <div class="menu-details-col">
+                  <div class="menu-inputs-row">
+                    <div class="input-group mb-0 name-col">
                       <label>ชื่อเมนูอาหาร</label>
                       <mat-form-field appearance="outline" class="pill-input">
                         <input matInput [(ngModel)]="menu.name" [name]="catName + '_menuName_' + $index" placeholder="เช่น ส้มตำไทย" />
                       </mat-form-field>
                     </div>
 
-                    <div class="input-group mb-0" style="flex: 1;">
+                    <div class="input-group mb-0 price-col">
                       <label>ราคา</label>
                       <mat-form-field appearance="outline" class="pill-input">
                         <input matInput type="number" [(ngModel)]="menu.price" [name]="catName + '_menuPrice_' + $index" placeholder="50" />
@@ -185,7 +185,7 @@
                     </div>
                   </div>
 
-                  <div class="menu-desc-row mt-2" style="margin-top: -12px;">
+                  <div class="menu-desc-row mt-2">
                     <div class="input-group w-100 mb-0">
                       <label>รายละเอียด (ถ้ามี)</label>
                       <mat-form-field appearance="outline" class="pill-input">
